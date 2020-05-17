@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data-sources>
+	<data-source id="h2_server-16f54d8cc53-13073db546edba14" provider="generic" driver="h2_server" name="H2 - employeeDirectory" save-password="true" read-only="false">
+		<connection host="localhost" port="12345" server="" database="~/employeeDirectory" url="jdbc:h2:tcp://localhost:12345/~/employeeDirectory" user="sa" password="AwUVM1ZMVhJl8w==" type="dev"/>
+	</data-source>
+	<filters/>
+</data-sources>

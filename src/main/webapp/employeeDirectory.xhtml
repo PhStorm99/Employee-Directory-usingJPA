@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:jsf="http://xmlns.jcp.org/jsf"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+  >
+
+  <!-- view that supports full C-R-U-D for Employees without navigation to other pages -->
+
+  <f:metadata>
+    <f:viewAction action="#{employeeController.loadEmployees()}" phase="UPDATE_MODEL_VALUES" />
+  </f:metadata>
+
+  <h:head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- title of tab/window in browser -->
+    <title>#{uiconsts['viewTitle']}</title>
+    <!-- Bootstrap: Open source toolkit for developing front-end apps using HTML, CSS, and JS
+          load from its public CDN (Content Delivery Network) 
+          requires JQuery, Bootstrap's JS and Bootstrap's CSS
+    -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous" />
+    <link href="https://use.fontawesome.com/releases/v5.12.0/css/all.css" rel="stylesheet" crossorigin="anonymous" />
+    
+    <!-- misc style tweaks: table hover color (you can change/add to this if you like), make Id column smaller -->
+    <style>
+      .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+        background-color: #f0f0e0;
+      }
+    </style>
+  </h:head>
+  <h:body>
+    <div class="container-fluid">
+      <!-- top navigation bar -->
+      <nav id="topbar" class="navbar navbar-light bg-light">
+        <div class="navbar-header">
+          <i class="navbar-brand fa fa-address-book"/>
+          <h:outputText value="#{uiconsts['viewTitle']}"/>
+        </div>
+        <div class="navbar-header">
+<!-- PANEL -->        
+          <h:panelGroup>
+            <a href="#" data-toggle="modal" data-target="#loginModal"><span style="color: black;"><i class="fa fa-sign-in-alt" />&#160;#{uiconsts['signin']}</span></a>
+            <div id="loginModal" class="modal">
+              <h:form class="form" role="form" id="login">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h:outputText style="color: black;" escape="false" value="#{uiconsts['login']} (#{uiconsts['nyi']})" /> 
+                      <button type="button" class="close" data-dismiss="modal">&#8855;</button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="form-group">
+                        <label for="username" class="col-sm-3 control-label">#{uiconsts['username']}</label>
+                        <div class="col-sm-9">
+                          <h:inputText class="form-control" placeholder="username" id="username" value="#{loginBean.username}" />
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="password" class="col-sm-3 control-label">#{uiconsts['password']}</label>
+                        <div class="col-sm-9">
+                          <h:inputSecret class="form-control" placeholder="password" id="password" value="#{loginBean.password}" />
+                        </div>
+                      </div>
+                      <div class="form-group last text-right">
+                        <div class="col-sm-offset-3 col-sm-9">
+                          <h:commandButton class="btn btn-outline-dark" id="submit" disabled="true" value="Login" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </h:form>
+            </div>
+          </h:panelGroup>
+        </div>
+      </nav>
+
+      <!-- footer
+         Bootstrap CSS is clever - even though this element is defined second under the 'container-fluid',
+         it is fixed to the bottom of the page
+       -->
+      <footer class="footer fixed-bottom bg-light">
+        <h:outputText class="text-muted" value="Brought to you by #{uiconsts['footer.studentname']} (20W CST 8277 - #{uiconsts['footer.labsection']} - Student #: #{uiconsts['footer.studentnumber']})"/>
+      </footer>
+
+<!-- main context -->
+      <div id="main" role="main" class="main col-12">
+      
+        <h:form id="addEmployee">  
+        <h:commandLink  value="#{uiconsts['addViewTitle']}" action="#{employeeController.toggleAddingShow()}" rendered="#{! employeeController.showView}">   
+             <i class="fa fa-user-plus" />&#xa0;
+          </h:commandLink>
+          
+          
+          <h:panelGroup rendered="#{employeeController.showView}">
+            <h:panelGrid id="fixlayout" columns="4">
+              <!-- some cool Bootstrap styling, combining icons and input fields -->
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text bg-transparent border-0"><i class="fa fa-user-edit" aria-hidden="true" />&#xa0;#{uiconsts['columnLabel_Firstname']}
+                    <h:inputText id="new_firstName" validatorMessage="#{uiconsts['enter_valid_string']}" value="#{newEmployeeView.firstName}">
+                
+                    <f:validateRegex pattern="[a-zA-Z]+" /> 
+                    
+                    </h:inputText>
+                  </span>
+                </div>
+                
+                <h:message for="new_firstName" style="color:red" />
+              </div>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text bg-transparent border-0"><i class="fa fa-user-edit" aria-hidden="true" />&#xa0;#{uiconsts['columnLabel_Lastname']}
+                    <h:inputText id="new_lastName" validatorMessage="#{uiconsts['enter_valid_string']}"
+                      value="#{newEmployeeView.lastName}">
+                      <!-- standard validation for string -->
+                        <f:validateRegex pattern="[a-zA-Z]+" /> 
+                    
+                    </h:inputText>
+                  </span>
+                </div>
+                <h:message for="new_lastName" style="color:red" />
+              </div>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text bg-transparent border-0"><i class="fa fa-at" aria-hidden="true" />&#xa0;#{uiconsts['columnLabel_Email']}
+                    <h:inputText id="new_email" validatorMessage="#{uiconsts['enter_valid_email']}"
+                      value="#{newEmployeeView.email}">
+                      <!-- validation for email: overly simple to allow any-and-all 'weird' emails
+                           TODO - define uiconsts['enter_valid_email'] in Bundle.properties
+                      -->
+                      <f:validateRegex pattern=".+@.+" />
+                    </h:inputText>
+                   </span>
+                </div>
+                <h:message for="new_email" style="color:red" />
+              </div>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text bg-transparent border-0"><i class="fas fa-user-tie" aria-hidden="true" />&#xa0;#{uiconsts['columnLabel_Title']}
+                    <h:inputText id="new_title" validatorMessage="#{uiconsts['enter_valid_string']}"
+                      value="#{newEmployeeView.title}">
+                      <!-- standard validation for string -->
+                      
+                     <f:validateRegex pattern="[a-zA-Z]+" /> 
+                    
+                    </h:inputText>
+                   </span>
+                </div>
+                <h:message for="new_title" style="color:red" />
+              </div>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text bg-transparent border-0"><i class="fas fa-money-bill" aria-hidden="true" />&#xa0;#{uiconsts['columnLabel_Salary']}
+                    <h:inputText id="new_salary" validatorMessage="#{uiconsts['enter_valid_salary']}"
+                      value="#{newEmployeeView.salary}">
+ <!-- TODO: CUSTOM validation for salary -->
+                    
+                      <f:validator validatorId="salaryGreaterThanZeroValidator" />
+                  
+                    </h:inputText>
+                   </span>
+                </div>
+                <h:message for="new_salary" style="color:red" />
+              </div>
+            </h:panelGrid>
+            
+            <h:panelGrid id="actions" columns="2" cellpadding="10">
+              <h:commandLink action="#{newEmployeeView.addEmployee()}">
+                <i class="fa fa-user-plus" />&#xa0;<h:outputText class="text-success" value="#{uiconsts['submitLabel']}" />
+              </h:commandLink>
+              <h:commandLink  action="#{employeeController.toggleAddingShow()}" immediate="true" >
+                <i class="fa fa-undo" />&#xa0;<h:outputText class="text-primary" value="#{uiconsts['dismissLabel']}" />
+<!-- 2 -->              
+              </h:commandLink>
+            </h:panelGrid>
+              
+          </h:panelGroup>
+        </h:form>
+        <br/>
+        <h:form id="employeeList">
+          <h:dataTable value="#{employeeController.employees}" var="emp"
+            styleClass="table table-striped table-bordered table-hover"
+            headerClass="thead-light"
+            captionClass="text-center">
+            <h:column styleClass="width: 5%;">
+              <f:facet name="header">#{uiconsts['columnLabel_Id']}</f:facet>
+              <h:outputText value="#{emp.id}" />
+            </h:column>
+            <h:column>
+              <f:facet name="header">#{uiconsts['columnLabel_Firstname']}</f:facet>
+              <h:outputText value="#{emp.firstName}" rendered="#{!employeeController.showView}" />
+  <!-- TODO: how to make h:inputText toggle -->
+              <h:inputText id="firstName_editable" size="10" validatorMessage="#{uiconsts['enter_valid_string']}"
+                value="#{emp.firstName}" rendered="#{employeeController.showView}">
+                <!-- standard validation for string -->
+                   <f:validateRegex pattern="[a-zA-Z]+" /> 
+                    
+              </h:inputText>
+              <br/>
+              <h:message for="firstName_editable" />
+            </h:column>
+            <h:column>
+              <f:facet name="header">#{uiconsts['columnLabel_Lastname']}</f:facet>
+              <h:outputText value="#{emp.lastName}" rendered="#{!employeeController.showView}" />
+              <h:inputText id="lastName_editable" size="10" validatorMessage="#{uiconsts['enter_valid_string']}"
+                value="#{emp.lastName}" rendered="#{employeeController.showView}">
+                <!-- standard validation for string -->
+                  <f:validateRegex pattern="[a-zA-Z]+" /> 
+                    
+              </h:inputText>
+              <br/>
+              <h:message for="lastName_editable" />
+            </h:column>
+            <h:column>
+              <f:facet name="header">#{uiconsts['columnLabel_Email']}</f:facet>
+              <h:outputText value="#{emp.email}" rendered="#{!employeeController.showView}" />
+              <h:inputText id="email_editable" size="10" validatorMessage="#{uiconsts['enter_valid_email']}"
+                value="#{emp.email}" rendered="#{employeeController.showView}">
+                <f:validateRegex pattern=".+@.+" />
+              </h:inputText>
+              <br/>
+              <h:message for="email_editable" />
+            </h:column>
+            <h:column>
+              <f:facet name="header">#{uiconsts['columnLabel_Title']}</f:facet>
+              <h:outputText value="#{emp.title}" rendered="#{!employeeController.showView}"/>
+              <h:inputText id="title_editable" size="10" validatorMessage="#{uiconsts['enter_valid_string']}"
+                value="#{emp.title}" rendered="#{employeeController.showView}" >
+                <!-- standard validation for string -->
+                  <f:validateRegex pattern="[a-zA-Z]+" />  
+                    
+              </h:inputText>
+              <br/>
+              <h:message for="title_editable" />
+            </h:column>
+            <h:column>
+              <f:facet name="header">#{uiconsts['columnLabel_Salary']}</f:facet>
+              <h:outputText value="#{emp.salary}" rendered="#{!employeeController.showView}"/>
+              <h:inputText id="salary_editable" size="10" type="number" 
+                 value="#{emp.salary}" validatorMessage="#{uiconsts['enter_valid_salary']}" rendered="#{employeeController.showView}" >
+                <!-- TODO: CUSTOM validation for string -->
+                
+                <f:validator validatorId="salaryGreaterThanZeroValidator" />
+              </h:inputText>
+              <br/>
+              <h:message for="salary_editable" />
+            </h:column>
+ <!-- Action column -->
+            <h:column>
+              <f:facet name="header">#{uiconsts['columnLabel_Action']}</f:facet>
+              
+ <!-- Edit-->              
+              <h:commandLink action="#{employeeController.editEmployee(emp)}" rendered ="#{!employeeController.showView}" >
+                <i class="fa fa-edit" />&#xa0;<h:outputText value="#{uiconsts['editLabel']}" />
+                    <f:ajax execute="@form:employeeList" render="@form:employeeList" listener="#{employeeController.toggleAddingShow()}" />
+              </h:commandLink>
+              &#xa0;
+           
+<!-- Save --> 
+              <h:panelGroup rendered="#{employeeController.showView}">             
+            
+              <h:commandLink action="#{employeeController.updateEmployee(emp)}" rendered="#{employeeController.showView}">
+                <i class="fa fa-save" />&#xa0;<h:outputText class="text-success" value="#{uiconsts['saveLabel']}" />
+                    <f:ajax execute="@form:employeeList" render="@form:employeeList" listener="#{employeeController.toggleAddingShow()}" />
+              </h:commandLink>
+              &#xa0;
+         
+<!-- Dismiss -->    
+              <h:commandLink action="#{employeeController.cancelUpdate(emp)}" rendered="#{employeeController.showView}" immediate="true" >
+                <i class="fa fa-undo" />&#xa0;<h:outputText value="#{uiconsts['dismissLabel']}" />
+                    <f:ajax execute="@form:employeeList" render="@form:employeeList" listener="#{employeeController.toggleAddingShow()}" />
+              </h:commandLink>
+              &#xa0;
+              
+              </h:panelGroup>
+              
+<!--Delete Button -->
+              <!-- Bootstrap popup dialog with dismss: must nicer than browser built-in alert -->
+           
+              <h:panelGroup rendered="#{not employeeController.showView}">
+  <a href="#" data-toggle="modal" data-target="#removeEmployeeModal#{emp.id}">
+    <span class="fa fa-trash fa-fw" style="color:red" />
+    &#xa0;<h:outputText value="#{uiconsts['deleteLabel']}" />
+  </a>
+  <div class="modal fade" tabindex="-1" role="dialog" id="removeEmployeeModal#{emp.id}">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&#8855;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>#{uiconsts['rus']} (#{emp.id})</p>
+        </div>
+        <div class="modal-footer">
+          <div class="form-group last text-right">
+            <button type="button" class="btn btn-outline-default"
+              data-dismiss="modal">#{uiconsts['dismissLabel']}
+            </button>
+            <h:panelGroup>
+              <button type="button" class="btn btn-outline-dark"
+                data-dismiss="modal">#{uiconsts['deleteLabel']}
+                <f:ajax event="click" listener="#{employeeController.deleteEmployee(emp.id)}"
+                  render="@form :employeeList"/>
+              </button>
+            </h:panelGroup>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</h:panelGroup>
+              
+            </h:column>
+            <f:facet name="footer">
+              <h:panelGroup style = "display:block; text-align:center">
+                <button type="button" class="btn btn-outline-dark" id="refreshBtn"><span class="fa fa-refresh" />&#xa0;<h:outputText value="#{uiconsts['refreshLabel']}" />
+                  <f:ajax event="click" listener="#{employeeController.loadEmployees()}" render="@form :employeeList"/>
+                </button>
+              </h:panelGroup>
+            </f:facet>
+            <f:facet name="caption">#{uiconsts['listCaption']}</f:facet>
+          </h:dataTable>
+          <h:messages style="color:red;margin:8px;" />
+        </h:form>
+      </div>
+    </div>
+  </h:body>
+</html>

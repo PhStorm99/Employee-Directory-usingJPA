@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE resources PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Resource Definitions//EN" "http://glassfish.org/dtds/glassfish-resources_1_5.dtd">
+<resources>
+    <jdbc-connection-pool
+        datasource-classname="org.h2.jdbcx.JdbcDataSource"
+        res-type="javax.sql.DataSource" 
+        name="employeeDirectoryPool"> 
+       <property name="User" value="sa"/> 
+       <property name="Password" value="password"/>
+       <property name="URL" value="jdbc:h2:tcp://localhost:12345/~/employeeDirectory"/>
+    </jdbc-connection-pool>
+    <jdbc-resource pool-name="employeeDirectoryPool" jndi-name="java:app/jdbc/employeeDirectory" />
+ </resources>
+ 
